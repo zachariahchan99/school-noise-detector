@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>校園「聲」態大搜查 - 智能分貝計</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+
+    <header class="bg-emerald-600 text-white shadow-md">
+        <div class="max-w-md mx-auto px-4 py-4 text-center">
+            <h1 class="text-xl font-bold tracking-wide">校園「聲」態大搜查 🌿</h1>
+            <p class="text-xs text-emerald-100 mt-1">五年級科學探究活動：智能分貝採樣工具</p>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-md w-full mx-auto p-4 space-y-4 pb-12">
+        
+        <!-- 設置區塊 -->
+        <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 space-y-3">
+            <h2 class="text-sm font-semibold text-slate-700 flex items-center gap-2">
+                <span>⚙️</span> 探究設定
+            </h2>
+            
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-medium text-slate-500 mb-1">校園區域</label>
+                    <select id="areaSelect" class="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        <option value="標準課室">標準課室</option>
+                        <option value="圖書館">圖書館</option>
+                        <option value="走廊">走廊</option>
+                        <option value="操場">操場</option>
+                        <option value="小食部">小食部</option>
+                        <option value="學校花園">學校花園</option>
+                        <option value="停車場">停車場</option>
+                        <option value="學校正門">學校正門</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-500 mb-1">量度時段</label>
+                    <select id="timeSelect" class="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        <option value="早會前">早會前</option>
+                        <option value="上課時">上課時</option>
+                        <option value="小息時">小息時</option>
+                        <option value="放學時">放學時</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- 模式選擇 -->
+            <div class="pt-2 border-t border-slate-100 flex items-center justify-between">
+                <span class="text-xs font-medium text-slate-500">收音來源模式</span>
+                <div class="flex bg-slate-100 p-1 rounded-xl text-xs font-medium">
+                    <button type="button" id="micModeBtn" onclick="setMode('mic')" class="px-3 py-1.5 rounded-lg bg-white shadow-sm text-emerald-700 transition">實時咪高峰</button>
+                    <button type="button" id="simModeBtn" onclick="setMode('sim')" class="px-3 py-1.5 rounded-lg text-slate-500 transition">模擬/示範模式</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 提示訊息盒 (代替 alert) -->
+        <div id="alertBox" class="hidden bg-amber-50 border border-amber-200 rounded-2xl p-4 text-xs text-amber-800 space-y-2">
+            <div class="flex items-center gap-2 font-semibold text-amber-900">
+                <span>⚠️</span> 咪高峰權限提示
+            </div>
+            <p id="alertMsg">無法存取咪高峰 (可能是瀏覽器未授權或未支援)。已自動切換至「模擬/示範模式」，您仍可順利完成探究活動與導出 Excel！</p>
+            <button onclick="dismissAlert()" class="bg-amber-200 hover:bg-amber-300 text-amber-900 px-3 py-1 rounded-lg font-medium transition">我知道了</button>
+        </div>
+
+        <!-- 即時數據儀表板 -->
+        <div id="meterCard" class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 text-center relative overflow-hidden transition-all duration-300">
+            <div id="statusBadge" class="inline-block px-3 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-600 mb-4">
+                準備就緒 (請保持安靜 30 秒後開始)
+            </div>
+
+            <div class="my-2">
+                <span id="currentDb" class="text-6xl font-black tracking-tight text-slate-800">--</span>
+                <span class="text-lg font-bold text-slate-400">dB</span>
+            </div>
+
+            <p id="noiseLevelDesc" class="text-sm font-medium text-slate-500 mt-2">點擊下方按鈕開始 60 秒自動採樣</p>
+
+            <!-- 進度條 -->
+            <div class="w-full bg-slate-100 h-2 rounded-full mt-6 overflow-hidden">
+                <div id="progressBar" class="bg-emerald-500 h-full w-0 transition-all duration-300"></div>
+            </div>
+            <div class="flex justify-between text-xs text-slate-400 mt-1">
+                <span id="progressText">0 / 60 秒</span>
+                <span id="timerText">01:00</span>
+            </div>
+        </div>
+
+        <!-- 控制按鈕 -->
+        <div class="space-y-2">
+            <button id="startBtn" onclick="startSampling()" class="w-full bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white font-semibold py-3.5 px-6 rounded-2xl shadow-lg shadow-emerald-600/20 transition flex items-center justify-center gap-2">
+                <span>▶️</span> 開始 1 分鐘自動採樣 (60次)
+            </button>
+            <button id="stopBtn" onclick="stopSampling()" disabled class="w-full bg-slate-200 text-slate-400 font-semibold py-3.5 px-6 rounded-2xl transition hidden">
+                停止採樣
+            </button>
+        </div>
+
+        <!-- 統計與檢視區塊 -->
+        <div id="resultSection" class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 space-y-3 hidden">
+            <h3 class="text-sm font-semibold text-slate-700 flex items-center justify-between">
+                <span>📊 採樣統計結果</span>
+                <span id="resultAreaTime" class="text-xs font-normal text-slate-400"></span>
+            </h3>
+
+            <div class="grid grid-cols-3 gap-2 text-center">
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                    <div class="text-xs text-slate-400">最低值</div>
+                    <div id="minDb" class="text-lg font-bold text-slate-700">--</div>
+                </div>
+                <div class="bg-emerald-50 p-3 rounded-xl border border-emerald-100">
+                    <div class="text-xs text-emerald-600 font-medium">平均值</div>
+                    <div id="avgDb" class="text-lg font-bold text-emerald-700">--</div>
+                </div>
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                    <div class="text-xs text-slate-400">最高值</div>
+                    <div id="maxDb" class="text-lg font-bold text-slate-700">--</div>
+                </div>
+            </div>
+
+            <!-- 噪聲分級指示 -->
+            <div id="gradeBox" class="p-3 rounded-xl text-xs font-medium text-center bg-slate-100 text-slate-600">
+                噪音級別: 待計算
+            </div>
+
+            <button onclick="downloadExcel()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-xl shadow transition flex items-center justify-center gap-2 text-sm">
+                <span>📥</span> 下載 Excel 兼容數據 (CSV)
+            </button>
+        </div>
+
+        <!-- 參考對照表說明 -->
+        <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 text-xs space-y-2">
+            <h4 class="font-semibold text-slate-700 mb-1">📘 校園噪音分級對照表</h4>
+            <div class="flex items-center gap-2 p-1.5 rounded-lg bg-emerald-50 text-emerald-800">
+                <span class="w-3 h-3 rounded-full bg-emerald-500 shrink-0"></span>
+                <span><strong>綠色 (≤ 50 dB)</strong>：非常安靜，讓人心情放鬆。</span>
+            </div>
+            <div class="flex items-center gap-2 p-1.5 rounded-lg bg-amber-50 text-amber-800">
+                <span class="w-3 h-3 rounded-full bg-amber-400 shrink-0"></span>
+                <span><strong>黃色 (51-65 dB)</strong>：適中/輕微，像平常說話。</span>
+            </div>
+            <div class="flex items-center gap-2 p-1.5 rounded-lg bg-orange-50 text-orange-800">
+                <span class="w-3 h-3 rounded-full bg-orange-500 shrink-0"></span>
+                <span><strong>橙色 (66-75 dB)</strong>：嘈雜，像熱鬧餐廳。</span>
+            </div>
+            <div class="flex items-center gap-2 p-1.5 rounded-lg bg-rose-50 text-rose-800">
+                <span class="w-3 h-3 rounded-full bg-rose-500 shrink-0"></span>
+                <span><strong>紅色 (≥ 76 dB)</strong>：非常嚴重，可能損害聽力。</span>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        let audioContext = null;
+        let analyser = null;
+        let microphone = null;
+        
+        let isSampling = false;
+        let sampleTimer = null;
+        let currentSecond = 0;
+        let collectedSamples = [];
+        let useSimulation = false; // 是否使用模擬模式
+        
+        const maxSeconds = 60;
+
+        // UI 元素
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const currentDbEl = document.getElementById('currentDb');
+        const statusBadge = document.getElementById('statusBadge');
+        const meterCard = document.getElementById('meterCard');
+        const progressBar = document.getElementById('progressBar');
+        const progressText = document.getElementById('progressText');
+        const timerText = document.getElementById('timerText');
+        const resultSection = document.getElementById('resultSection');
+        const alertBox = document.getElementById('alertBox');
+        const alertMsg = document.getElementById('alertMsg');
+        const micModeBtn = document.getElementById('micModeBtn');
+        const simModeBtn = document.getElementById('simModeBtn');
+
+        function setMode(mode) {
+            if (mode === 'mic') {
+                useSimulation = false;
+                micModeBtn.className = "px-3 py-1.5 rounded-lg bg-white shadow-sm text-emerald-700 transition";
+                simModeBtn.className = "px-3 py-1.5 rounded-lg text-slate-500 transition";
+                initAudio();
+            } else {
+                useSimulation = true;
+                simModeBtn.className = "px-3 py-1.5 rounded-lg bg-white shadow-sm text-emerald-700 transition";
+                micModeBtn.className = "px-3 py-1.5 rounded-lg text-slate-500 transition";
+                showAlert("已手動切換至「模擬/示範模式」。此模式將根據不同校園區域產生合適的環境聲量數值。");
+            }
+        }
+
+        function showAlert(msg) {
+            alertMsg.innerText = msg;
+            alertBox.classList.remove('hidden');
+        }
+
+        function dismissAlert() {
+            alertBox.classList.add('hidden');
+        }
+
+        async function initAudio() {
+            if (useSimulation) return true;
+            try {
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    useSimulation = true;
+                    showAlert("此瀏覽器環境不支援或限制了咪高峰存取，已自動切換至模擬模式。");
+                    return false;
+                }
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                analyser = audioContext.createAnalyser();
+                microphone = audioContext.createMediaStreamSource(stream);
+                
+                analyser.fftSize = 512;
+                microphone.connect(analyser);
+                return true;
+            } catch (err) {
+                console.warn("Microphone access denied or error:", err);
+                useSimulation = true;
+                simModeBtn.click();
+                showAlert("無法存取咪高峰權限 (NotAllowedError)。已自動切換至「模擬/示範模式」，您可繼續進行活動！");
+                return false;
+            }
+        }
+
+        // 根據環境計算或模擬分貝值
+        function getDbLevel() {
+            if (useSimulation || !analyser) {
+                // 根據選擇的區域給予合理的模擬噪聲音調
+                const area = document.getElementById('areaSelect').value;
+                let base = 45;
+                let variance = Math.floor(Math.random() * 12) - 6;
+                
+                if (area === '圖書館' || area === '學校花園') base = 42;
+                else if (area === '標準課室') base = 54;
+                else if (area === '走廊') base = 62;
+                else if (area === '操場' || area === '小食部') base = 70;
+                else if (area === '停車場' || area === '學校正門') base = 74;
+
+                return Math.min(Math.max(base + variance, 35), 92);
+            }
+
+            const array = new Uint8Array(analyser.frequencyBinCount);
+            analyser.getByteFrequencyData(array);
+            
+            let values = 0;
+            for (let i = 0; i < array.length; i++) {
+                values += array[i];
+            }
+            let average = values / array.length;
+            
+            // 將音頻能量映射到合理的校園分貝範圍 (大約 35 dB 到 95 dB)
+            let db = Math.round(35 + (average / 255) * 60);
+            return Math.min(Math.max(db, 30), 100);
+        }
+
+        async function startSampling() {
+            if (!useSimulation && !audioContext) {
+                await initAudio();
+            } else if (audioContext && audioContext.state === 'suspended') {
+                await audioContext.resume();
+            }
+
+            isSampling = true;
+            currentSecond = 0;
+            collectedSamples = [];
+            
+            startBtn.classList.add('hidden');
+            stopBtn.classList.remove('hidden');
+            stopBtn.disabled = false;
+            stopBtn.classList.remove('bg-slate-200', 'text-slate-400');
+            stopBtn.classList.add('bg-rose-500', 'text-white', 'hover:bg-rose-600');
+            
+            resultSection.classList.add('hidden');
+            statusBadge.className = "inline-block px-3 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800 animate-pulse";
+            statusBadge.innerText = useSimulation ? "正在進行模擬自動採樣 (每秒 1 次)..." : "正在咪高峰實時採樣中 (每秒 1 次)...";
+
+            sampleTimer = setInterval(() => {
+                currentSecond++;
+                let db = getDbLevel();
+                collectedSamples.push({ second: currentSecond, db: db });
+
+                // 更新即時畫面
+                currentDbEl.innerText = db;
+                updateMeterStyle(db);
+
+                let progressPercent = (currentSecond / maxSeconds) * 100;
+                progressBar.style.width = progressPercent + '%';
+                progressText.innerText = `${currentSecond} / 60 秒`;
+                
+                let remaining = maxSeconds - currentSecond;
+                let mins = String(Math.floor(remaining / 60)).padStart(2, '0');
+                let secs = String(remaining % 60).padStart(2, '0');
+                timerText.innerText = `${mins}:${secs}`;
+
+                if (currentSecond >= maxSeconds) {
+                    stopSampling();
+                }
+            }, 1000);
+        }
+
+        function stopSampling() {
+            if (!isSampling) return;
+            isSampling = false;
+            clearInterval(sampleTimer);
+
+            startBtn.classList.remove('hidden');
+            stopBtn.classList.add('hidden');
+            
+            statusBadge.className = "inline-block px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800";
+            statusBadge.innerText = "採樣完成 ✅";
+
+            if (collectedSamples.length > 0) {
+                calculateResults();
+            }
+        }
+
+        function updateMeterStyle(db) {
+            if (db <= 50) {
+                meterCard.className = "bg-emerald-50/50 rounded-3xl p-6 shadow-sm border border-emerald-200 text-center relative overflow-hidden transition-all duration-300";
+                currentDbEl.className = "text-6xl font-black tracking-tight text-emerald-600";
+                noiseLevelDesc.innerText = "非常安靜，讓人心情放鬆 🌿";
+            } else if (db <= 65) {
+                meterCard.className = "bg-amber-50/50 rounded-3xl p-6 shadow-sm border border-amber-200 text-center relative overflow-hidden transition-all duration-300";
+                currentDbEl.className = "text-6xl font-black tracking-tight text-amber-600";
+                noiseLevelDesc.innerText = "適中/輕微，像平常說話 🗣️";
+            } else if (db <= 75) {
+                meterCard.className = "bg-orange-50/50 rounded-3xl p-6 shadow-sm border border-orange-200 text-center relative overflow-hidden transition-all duration-300";
+                currentDbEl.className = "text-6xl font-black tracking-tight text-orange-600";
+                noiseLevelDesc.innerText = "嘈雜，像熱鬧的餐廳 📢";
+            } else {
+                meterCard.className = "bg-rose-50/50 rounded-3xl p-6 shadow-sm border border-rose-200 text-center relative overflow-hidden transition-all duration-300";
+                currentDbEl.className = "text-6xl font-black tracking-tight text-rose-600";
+                noiseLevelDesc.innerText = "非常嚴重，長時間可能損害聽力 ⚠️";
+            }
+        }
+
+        function calculateResults() {
+            const area = document.getElementById('areaSelect').value;
+            const timeSlot = document.getElementById('timeSelect').value;
+            
+            document.getElementById('resultAreaTime').innerText = `${area} (${timeSlot})`;
+
+            let dbs = collectedSamples.map(s => s.db);
+            let min = Math.min(...dbs);
+            let max = Math.max(...dbs);
+            let avg = Math.round(dbs.reduce((a, b) => a + b, 0) / dbs.length);
+
+            document.getElementById('minDb').innerText = min + ' dB';
+            document.getElementById('avgDb').innerText = avg + ' dB';
+            document.getElementById('maxDb').innerText = max + ' dB';
+
+            // 判斷噪音級別與顏色
+            let gradeBox = document.getElementById('gradeBox');
+            if (avg <= 50) {
+                gradeBox.className = "p-3 rounded-xl text-xs font-medium text-center bg-emerald-100 text-emerald-800";
+                gradeBox.innerText = "噪音級別: 綠色 (≤ 50 dB) - 非常安靜";
+            } else if (avg <= 65) {
+                gradeBox.className = "p-3 rounded-xl text-xs font-medium text-center bg-amber-100 text-amber-800";
+                gradeBox.innerText = "噪音級別: 黃色 (51-65 dB) - 適中/輕微";
+            } else if (avg <= 75) {
+                gradeBox.className = "p-3 rounded-xl text-xs font-medium text-center bg-orange-100 text-orange-800";
+                gradeBox.innerText = "噪音級別: 橙色 (66-75 dB) - 嘈雜";
+            } else {
+                gradeBox.className = "p-3 rounded-xl text-xs font-medium text-center bg-rose-100 text-rose-800";
+                gradeBox.innerText = "噪音級別: 紅色 (≥ 76 dB) - 非常嚴重";
+            }
+
+            resultSection.classList.remove('hidden');
+            resultSection.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function downloadExcel() {
+            const area = document.getElementById('areaSelect').value;
+            const timeSlot = document.getElementById('timeSelect').value;
+            
+            let csvContent = "\uFEFF"; // 確保 Excel 讀取中文正常顯示 (UTF-8 BOM)
+            csvContent += `校園「聲」態大搜查 - 數據報告\n`;
+            csvContent += `區域,${area}\n`;
+            csvContent += `時段,${timeSlot}\n\n`;
+            csvContent += `秒數,聲量 (dB)\n`;
+
+            collectedSamples.forEach(sample => {
+                csvContent += `${sample.second},${sample.db}\n`;
+            });
+
+            let dbs = collectedSamples.map(s => s.db);
+            let min = Math.min(...dbs);
+            let max = Math.max(...dbs);
+            let avg = Math.round(dbs.reduce((a, b) => a + b, 0) / dbs.length);
+
+            csvContent += `\n統計摘要\n`;
+            csvContent += `最低值 (Minimum),${min} dB\n`;
+            csvContent += `平均值 (Average),${avg} dB\n`;
+            csvContent += `最高值 (Maximum),${max} dB\n`;
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", `校園噪音數據_${area}_${timeSlot}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+</body>
+</html>
