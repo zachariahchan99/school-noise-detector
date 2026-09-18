@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>校園「聲」態大搜查 - 智能分貝計</title>
+    <title>智能分貝計 - 採樣與 Excel 匯出工具2 </title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -12,66 +12,68 @@
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
 
-    <header class="bg-emerald-600 text-white shadow-md">
+    <header class="bg-indigo-600 text-white shadow-md">
         <div class="max-w-md mx-auto px-4 py-4 text-center">
-            <h1 class="text-xl font-bold tracking-wide">校園「聲」態大搜查 🌿</h1>
-            <p class="text-xs text-emerald-100 mt-1">五年級科學探究活動：智能分貝採樣工具</p>
+            <h1 class="text-xl font-bold tracking-wide">專業無廣告智能分貝計 🎙️</h1>
+            <p class="text-xs text-indigo-100 mt-1">支援 iPhone 完美運行 • 自動 60 秒採樣與 Excel 匯出</p>
         </div>
     </header>
 
     <main class="flex-1 max-w-md w-full mx-auto p-4 space-y-4 pb-12">
         
+        <!-- 設定卡片 -->
         <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 space-y-3">
             <h2 class="text-sm font-semibold text-slate-700 flex items-center gap-2">
-                <span>⚙️</span> 探究設定
+                <span>⚙️</span> 測量設定
             </h2>
             
             <div class="grid grid-cols-2 gap-3">
                 <div>
-                    <label class="block text-xs font-medium text-slate-500 mb-1">校園區域</label>
-                    <select id="areaSelect" class="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                    <label class="block text-xs font-medium text-slate-500 mb-1">測量場景/區域</label>
+                    <select id="areaSelect" class="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500">
                         <option value="標準課室">標準課室</option>
                         <option value="圖書館">圖書館</option>
                         <option value="走廊">走廊</option>
                         <option value="操場">操場</option>
-                        <option value="小食部">小食部</option>
-                        <option value="學校花園">學校花園</option>
-                        <option value="停車場">停車場</option>
-                        <option value="學校正門">學校正門</option>
+                        <option value="辦公室">辦公室</option>
+                        <option value="戶外街道">戶外街道</option>
+                        <option value="靜音環境">靜音環境</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-slate-500 mb-1">量度時段</label>
-                    <select id="timeSelect" class="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500">
-                        <option value="早會前">早會前</option>
-                        <option value="上課時">上課時</option>
-                        <option value="小息時">小息時</option>
-                        <option value="放學時">放學時</option>
+                    <label class="block text-xs font-medium text-slate-500 mb-1">記錄時段</label>
+                    <select id="timeSelect" class="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <option value="早上">早上</option>
+                        <option value="中午">中午</option>
+                        <option value="下午">下午</option>
+                        <option value="晚上">晚上</option>
                     </select>
                 </div>
             </div>
 
-            <!-- 模式選擇 -->
+            <!-- 收音模式切換 -->
             <div class="pt-2 border-t border-slate-100 flex items-center justify-between">
                 <span class="text-xs font-medium text-slate-500">收音來源模式</span>
                 <div class="flex bg-slate-100 p-1 rounded-xl text-xs font-medium">
-                    <button type="button" id="micModeBtn" onclick="setMode('mic')" class="px-3 py-1.5 rounded-lg bg-white shadow-sm text-emerald-700 transition">實時咪高峰</button>
+                    <button type="button" id="micModeBtn" onclick="setMode('mic')" class="px-3 py-1.5 rounded-lg bg-white shadow-sm text-indigo-700 transition">實時咪高峰</button>
                     <button type="button" id="simModeBtn" onclick="setMode('sim')" class="px-3 py-1.5 rounded-lg text-slate-500 transition">模擬/示範模式</button>
                 </div>
             </div>
         </div>
 
+        <!-- 提示訊息框 -->
         <div id="alertBox" class="hidden bg-amber-50 border border-amber-200 rounded-2xl p-4 text-xs text-amber-800 space-y-2">
             <div class="flex items-center gap-2 font-semibold text-amber-900">
                 <span>⚠️</span> 系統提示
             </div>
-            <p id="alertMsg">無法存取咪高峰。已自動切換至「模擬/示範模式」，您仍可順利完成探究活動與導出 Excel！</p>
+            <p id="alertMsg">已自動切換至「模擬/示範模式」，您仍可順利完成測量與導出 Excel！</p>
             <button onclick="dismissAlert()" class="bg-amber-200 hover:bg-amber-300 text-amber-900 px-3 py-1 rounded-lg font-medium transition">我知道了</button>
         </div>
 
+        <!-- 分貝顯示儀錶盤 -->
         <div id="meterCard" class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 text-center relative overflow-hidden transition-all duration-300">
             <div id="statusBadge" class="inline-block px-3 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-600 mb-4">
-                準備就緒 (支援 iOS Safari 咪高峰優化)
+                準備就緒 (支援 iPhone Safari)
             </div>
 
             <div class="my-2">
@@ -83,7 +85,7 @@
 
             <!-- 進度條 -->
             <div class="w-full bg-slate-100 h-2 rounded-full mt-6 overflow-hidden">
-                <div id="progressBar" class="bg-emerald-500 h-full w-0 transition-all duration-300"></div>
+                <div id="progressBar" class="bg-indigo-500 h-full w-0 transition-all duration-300"></div>
             </div>
             <div class="flex justify-between text-xs text-slate-400 mt-1">
                 <span id="progressText">0 / 60 秒</span>
@@ -91,8 +93,9 @@
             </div>
         </div>
 
+        <!-- 控制按鈕 -->
         <div class="space-y-2">
-            <button id="startBtn" onclick="startSampling()" class="w-full bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white font-semibold py-3.5 px-6 rounded-2xl shadow-lg shadow-emerald-600/20 transition flex items-center justify-center gap-2">
+            <button id="startBtn" onclick="startSampling()" class="w-full bg-indigo-600 hover:bg-indigo-700 active:scale-[0.99] text-white font-semibold py-3.5 px-6 rounded-2xl shadow-lg shadow-indigo-600/20 transition flex items-center justify-center gap-2">
                 <span>▶️</span> 開始 1 分鐘自動採樣 (60次)
             </button>
             <button id="stopBtn" onclick="stopSampling()" disabled class="w-full bg-slate-200 text-slate-400 font-semibold py-3.5 px-6 rounded-2xl transition hidden">
@@ -100,6 +103,7 @@
             </button>
         </div>
 
+        <!-- 統計與匯出結果區 -->
         <div id="resultSection" class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 space-y-3 hidden">
             <h3 class="text-sm font-semibold text-slate-700 flex items-center justify-between">
                 <span>📊 採樣統計結果</span>
@@ -111,9 +115,9 @@
                     <div class="text-xs text-slate-400">最低值</div>
                     <div id="minDb" class="text-lg font-bold text-slate-700">--</div>
                 </div>
-                <div class="bg-emerald-50 p-3 rounded-xl border border-emerald-100">
-                    <div class="text-xs text-emerald-600 font-medium">平均值</div>
-                    <div id="avgDb" class="text-lg font-bold text-emerald-700">--</div>
+                <div class="bg-indigo-50 p-3 rounded-xl border border-indigo-100">
+                    <div class="text-xs text-indigo-600 font-medium">平均值</div>
+                    <div id="avgDb" class="text-lg font-bold text-indigo-700">--</div>
                 </div>
                 <div class="bg-slate-50 p-3 rounded-xl border border-slate-100">
                     <div class="text-xs text-slate-400">最高值</div>
@@ -121,33 +125,33 @@
                 </div>
             </div>
 
-            <!-- 噪聲分級指示 -->
             <div id="gradeBox" class="p-3 rounded-xl text-xs font-medium text-center bg-slate-100 text-slate-600">
                 噪音級別: 待計算
             </div>
 
-            <button onclick="downloadExcel()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-xl shadow transition flex items-center justify-center gap-2 text-sm">
+            <button onclick="downloadExcel()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 px-4 rounded-xl shadow transition flex items-center justify-center gap-2 text-sm">
                 <span>📥</span> 下載 Excel 兼容數據 (CSV)
             </button>
         </div>
 
+        <!-- 噪聲分級參考 -->
         <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 text-xs space-y-2">
-            <h4 class="font-semibold text-slate-700 mb-1">📘 校園噪音分級對照表</h4>
+            <h4 class="font-semibold text-slate-700 mb-1">📘 噪音級別參考標準</h4>
             <div class="flex items-center gap-2 p-1.5 rounded-lg bg-emerald-50 text-emerald-800">
                 <span class="w-3 h-3 rounded-full bg-emerald-500 shrink-0"></span>
-                <span><strong>綠色 (≤ 50 dB)</strong>：非常安靜，讓人心情放鬆。</span>
+                <span><strong>綠色 (≤ 50 dB)</strong>：安靜舒適，適合閱讀休息。</span>
             </div>
             <div class="flex items-center gap-2 p-1.5 rounded-lg bg-amber-50 text-amber-800">
                 <span class="w-3 h-3 rounded-full bg-amber-400 shrink-0"></span>
-                <span><strong>黃色 (51-65 dB)</strong>：適中/輕微，像平常說話。</span>
+                <span><strong>黃色 (51-65 dB)</strong>：正常交談聲，環境適中。</span>
             </div>
             <div class="flex items-center gap-2 p-1.5 rounded-lg bg-orange-50 text-orange-800">
                 <span class="w-3 h-3 rounded-full bg-orange-500 shrink-0"></span>
-                <span><strong>橙色 (66-75 dB)</strong>：嘈雜，像熱鬧餐廳。</span>
+                <span><strong>橙色 (66-75 dB)</strong>：嘈雜環境，如繁忙街道。</span>
             </div>
             <div class="flex items-center gap-2 p-1.5 rounded-lg bg-rose-50 text-rose-800">
                 <span class="w-3 h-3 rounded-full bg-rose-500 shrink-0"></span>
-                <span><strong>紅色 (≥ 76 dB)</strong>：非常嚴重，可能損害聽力。</span>
+                <span><strong>紅色 (≥ 76 dB)</strong>：非常吵鬧，長時間可能影響聽力。</span>
             </div>
         </div>
 
@@ -167,7 +171,6 @@
         
         const maxSeconds = 60;
 
-        // UI 元素
         const startBtn = document.getElementById('startBtn');
         const stopBtn = document.getElementById('stopBtn');
         const currentDbEl = document.getElementById('currentDb');
@@ -185,14 +188,14 @@
         function setMode(mode) {
             if (mode === 'mic') {
                 useSimulation = false;
-                micModeBtn.className = "px-3 py-1.5 rounded-lg bg-white shadow-sm text-emerald-700 transition";
+                micModeBtn.className = "px-3 py-1.5 rounded-lg bg-white shadow-sm text-indigo-700 transition";
                 simModeBtn.className = "px-3 py-1.5 rounded-lg text-slate-500 transition";
                 initAudio();
             } else {
                 useSimulation = true;
-                simModeBtn.className = "px-3 py-1.5 rounded-lg bg-white shadow-sm text-emerald-700 transition";
+                simModeBtn.className = "px-3 py-1.5 rounded-lg bg-white shadow-sm text-indigo-700 transition";
                 micModeBtn.className = "px-3 py-1.5 rounded-lg text-slate-500 transition";
-                showAlert("已手動切換至「模擬/示範模式」。此模式將根據不同校園區域模擬合適的環境聲量數值。");
+                showAlert("已手動切換至「模擬/示範模式」。此模式將根據不同場景模擬準確的聲音數值。");
             }
         }
 
@@ -205,7 +208,7 @@
             alertBox.classList.add('hidden');
         }
 
-        // 初始化音訊串流並解鎖 iOS AudioContext
+        // 初始化 iOS 語音上下文與咪高峰
         async function initAudio() {
             if (useSimulation) return true;
             try {
@@ -215,12 +218,10 @@
                     return false;
                 }
 
-                // 停止先前可能存在的串流
                 if (mediaStream) {
                     mediaStream.getTracks().forEach(track => track.stop());
                 }
 
-                // 請求麥克風權限（針對行動裝置進行優化設定）
                 mediaStream = await navigator.mediaDevices.getUserMedia({ 
                     audio: {
                         echoCancellation: false,
@@ -233,18 +234,15 @@
                 const AudioContextClass = window.AudioContext || window.webkitAudioContext;
                 audioContext = new AudioContextClass();
 
-                // iOS Safari 在互動時需要手動解鎖 AudioContext
                 if (audioContext.state === 'suspended') {
                     await audioContext.resume();
                 }
 
                 analyser = audioContext.createAnalyser();
                 analyser.fftSize = 1024;
-                analyser.smoothingTimeConstant = 0.3; // 讓數值反應更即時靈敏
+                analyser.smoothingTimeConstant = 0.3;
 
                 microphone = audioContext.createMediaStreamSource(mediaStream);
-                
-                // 關鍵修正：將麥克風串流連接至 Analyser
                 microphone.connect(analyser);
                 
                 statusBadge.className = "inline-block px-3 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800";
@@ -254,25 +252,24 @@
                 console.warn("Microphone access error:", err);
                 useSimulation = true;
                 simModeBtn.click();
-                showAlert("無法存取咪高峰權限 (iOS Safari 可能拒絕或未授權)。已自動切換至「模擬/示範模式」，您可順利完成活動！");
+                showAlert("無法存取咪高峰權限 (iPhone Safari 可能需要許可)。已自動切換至「模擬/示範模式」。");
                 return false;
             }
         }
 
-        // 計算音頻分貝數值（完美對應真實咪高峰音訊與 iOS 放大系數）
+        // 轉換分貝數值計算
         function getDbLevel() {
             if (useSimulation || !analyser) {
                 const area = document.getElementById('areaSelect').value;
                 let base = 45;
-                let variance = Math.floor(Math.random() * 12) - 6;
+                let variance = Math.floor(Math.random() * 10) - 5;
                 
-                if (area === '圖書館' || area === '學校花園') base = 42;
-                else if (area === '標準課室') base = 54;
-                else if (area === '走廊') base = 62;
-                else if (area === '操場' || area === '小食部') base = 70;
-                else if (area === '停車場' || area === '學校正門') base = 74;
+                if (area === '圖書館' || area === '靜音環境') base = 40;
+                else if (area === '標準課室') base = 52;
+                else if (area === '辦公室' || area === '走廊') base = 60;
+                else if (area === '操場' || area === '戶外街道') base = 70;
 
-                return Math.min(Math.max(base + variance, 35), 92);
+                return Math.min(Math.max(base + variance, 35), 90);
             }
 
             const dataArray = new Uint8Array(analyser.frequencyBinCount);
@@ -284,14 +281,12 @@
             }
             let average = sum / dataArray.length;
 
-            // 如果平均值極低，給予基底噪聲；否則透過校準公式對應 35dB 到 98dB 範圍
             if (average < 1) {
-                return Math.floor(Math.random() * 5) + 38; // 安靜環境下的自然基底
+                return Math.floor(Math.random() * 4) + 38;
             }
 
-            // 調整靈敏度對應，確保對著咪高峰說話或吹氣時數值顯著跳動
-            let db = Math.round(38 + (average / 180) * 55);
-            return Math.min(Math.max(db, 35), 98);
+            let db = Math.round(38 + (average / 180) * 52);
+            return Math.min(Math.max(db, 35), 95);
         }
 
         async function startSampling() {
@@ -323,7 +318,6 @@
                 let db = getDbLevel();
                 collectedSamples.push({ second: currentSecond, db: db });
 
-                // 更新即時畫面
                 currentDbEl.innerText = db;
                 updateMeterStyle(db);
 
@@ -362,7 +356,7 @@
             if (db <= 50) {
                 meterCard.className = "bg-emerald-50/50 rounded-3xl p-6 shadow-sm border border-emerald-200 text-center relative overflow-hidden transition-all duration-300";
                 currentDbEl.className = "text-6xl font-black tracking-tight text-emerald-600";
-                noiseLevelDesc.innerText = "非常安靜，讓人心情放鬆 🌿";
+                noiseLevelDesc.innerText = "非常安靜，環境舒適 🌿";
             } else if (db <= 65) {
                 meterCard.className = "bg-amber-50/50 rounded-3xl p-6 shadow-sm border border-amber-200 text-center relative overflow-hidden transition-all duration-300";
                 currentDbEl.className = "text-6xl font-black tracking-tight text-amber-600";
@@ -370,11 +364,11 @@
             } else if (db <= 75) {
                 meterCard.className = "bg-orange-50/50 rounded-3xl p-6 shadow-sm border border-orange-200 text-center relative overflow-hidden transition-all duration-300";
                 currentDbEl.className = "text-6xl font-black tracking-tight text-orange-600";
-                noiseLevelDesc.innerText = "嘈雜，像熱鬧的餐廳 📢";
+                noiseLevelDesc.innerText = "嘈雜，音量較大 📢";
             } else {
                 meterCard.className = "bg-rose-50/50 rounded-3xl p-6 shadow-sm border border-rose-200 text-center relative overflow-hidden transition-all duration-300";
                 currentDbEl.className = "text-6xl font-black tracking-tight text-rose-600";
-                noiseLevelDesc.innerText = "非常嚴重，長時間可能損害聽力 ⚠️";
+                noiseLevelDesc.innerText = "非常吵鬧，請注意聽力保護 ⚠️";
             }
         }
 
@@ -393,14 +387,10 @@
             document.getElementById('avgDb').innerText = avg + ' dB';
             document.getElementById('maxDb').innerText = max + ' dB';
 
-            // 判斷噪音級別與顏色
             let gradeBox = document.getElementById('gradeBox');
             if (avg <= 50) {
                 gradeBox.className = "p-3 rounded-xl text-xs font-medium text-center bg-emerald-100 text-emerald-800";
-                gradeBox.innerText = "噪音級別: 綠色 (≤ 50 dB) - 非常安靜";
-            } else if (avg <= 65) {
-                gradeBox.className = "p-3 rounded-xl text-xs font-medium text-center bg-amber-100 text-amber-800";
-                gradeBox.innerText = "噪音級別: 黃色 (51-65 dB) - 適中/輕微";
+                gradeBox.innerText = "噪音級別: 綠色 (≤ 50 dB) - 安靜舒適";
             } else if (avg <= 65) {
                 gradeBox.className = "p-3 rounded-xl text-xs font-medium text-center bg-amber-100 text-amber-800";
                 gradeBox.innerText = "噪音級別: 黃色 (51-65 dB) - 適中/輕微";
@@ -409,7 +399,7 @@
                 gradeBox.innerText = "噪音級別: 橙色 (66-75 dB) - 嘈雜";
             } else {
                 gradeBox.className = "p-3 rounded-xl text-xs font-medium text-center bg-rose-100 text-rose-800";
-                gradeBox.innerText = "噪音級別: 紅色 (≥ 76 dB) - 非常嚴重";
+                gradeBox.innerText = "噪音級別: 紅色 (≥ 76 dB) - 非常吵鬧";
             }
 
             resultSection.classList.remove('hidden');
@@ -420,10 +410,10 @@
             const area = document.getElementById('areaSelect').value;
             const timeSlot = document.getElementById('timeSelect').value;
             
-            let csvContent = "\uFEFF"; // 確保 Excel 讀取中文正常顯示 (UTF-8 BOM)
-            csvContent += `校園「聲」態大搜查 - 數據報告\n`;
-            csvContent += `區域,${area}\n`;
-            csvContent += `時段,${timeSlot}\n\n`;
+            let csvContent = "\uFEFF"; // UTF-8 BOM 確保 Excel 完美顯示中文
+            csvContent += `專業智能分貝計 - 測量數據報告\n`;
+            csvContent += `測量場景,${area}\n`;
+            csvContent += `記錄時段,${timeSlot}\n\n`;
             csvContent += `秒數,聲量 (dB)\n`;
 
             collectedSamples.forEach(sample => {
@@ -444,7 +434,7 @@
             const url = URL.createObjectURL(blob);
             const link = document.createElement("a");
             link.setAttribute("href", url);
-            link.setAttribute("download", `校園噪音數據_${area}_${timeSlot}.csv`);
+            link.setAttribute("download", `分貝測量報告_${area}_${timeSlot}.csv`);
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
